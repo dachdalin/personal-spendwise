@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\LoginController;
+use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\BudgetController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\TransactionController;
@@ -11,6 +12,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::post('/auth/login', LoginController::class)->name('auth.login');
 
     Route::middleware('auth:sanctum')->group(function (): void {
+        Route::post('/auth/logout', LogoutController::class)->name('auth.logout');
+
         Route::apiResource('budgets', BudgetController::class);
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('transactions', TransactionController::class);

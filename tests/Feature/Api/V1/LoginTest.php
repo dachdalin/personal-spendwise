@@ -5,6 +5,7 @@ namespace Tests\Feature\Api\V1;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\Fluent\AssertableJson;
+use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
 class LoginTest extends TestCase
@@ -52,6 +53,30 @@ class LoginTest extends TestCase
             ->getJson('/api/user')
             ->assertOk()
             ->assertJsonPath('id', $user->id);
+    }
+
+    public function test_user_can_logout_and_revoke_current_token(): void
+    {
+        $user = User::factory()->create();
+
+        $token = $this->postJson(route('api.v1.auth.login'), [
+            'email' => $user->email,
+            'password' => 'password',
+            'device_name' => 'Android',
+        ])->json('token');
+
+        $this->withToken($token)
+            ->postJson(route('api.v1.auth.logout'))
+            ->assertNoContent();
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertNull(PersonalAccessToken::findToken($token));
+    }
+
+    public function test_logout_requires_authentication(): void
+    {
+        $this->postJson(route('api.v1.auth.logout'))
+            ->assertUnauthorized();
     }
 
     public function test_user_can_not_login_with_invalid_password(): void
